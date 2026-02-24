@@ -4,29 +4,45 @@
 // renders a TaskItem for each task
 // passes down status change handler
 // passes down delete handler
+import { useState } from "react";
+import type { Task, TaskStatus } from "../../types";
+import { TaskItem } from "../TaskItem/TaskItem";
+import { TaskFilter } from "../TaskFilter/TaskFilter";
 
-import type { TaskListProps } from "../../types";
+interface Props {
+  initialTasks: Task[];
+}
+function TaskList({ initialTasks }: Props) {
+  const [tasks, setTasks] = useState<Task[]>(initialTasks);
+  const [filter, setFilter] = useState<{ status?: TaskStatus }>({});
 
-export default function TaskList({tasks, onStatusChange, onDelete}: TaskListProps) {
+  function handleStatusChange(id: string, newStatus: TaskStatus) {
+    setTasks(tasks => tasks.map(task => task.id === id ? {...task, status: newStatus } : task));
+  }
+
+  function handleDelete(id: string) {
+    setTasks(tasks => tasks.filter(task => task.id !== id));
+  }
+
+  const filteredTasks = tasks.filter((task) => {
+    if (filter.status) {
+      return task.status === filter.status;
+    }
+    return true;
+  });
   return (
-    <>
-      <h1>{tasks[0].title}</h1>
-      <p>{tasks[0].description}</p>
-      <p>{tasks[0].status}</p>
-      <p>{tasks[0].priority}</p>
-      <p>{tasks[0].dueDate}</p>
-    </>
-  )
-}
+    <div>
+      <TaskFilter onFilterChange={setFilter} />
 
-/* 
-{
-  id: 'One'
-  title: 'Another One'
-  description: 'first'
-  status: 'in-progress'
-  priority: 'medium'
-  dueDate: 'Feb'
+      {filteredTasks.map((task) => (
+        <TaskItem
+          key={task.id}
+          task={task}
+          onStatusChange={handleStatusChange}
+          onDelete={handleDelete}
+        />
+      ))}
+    </div>
+  );
 }
-
-*/
+ export default TaskList
